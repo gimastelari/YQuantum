@@ -1,1 +1,9 @@
 # Requirements.Txt
+
+qiskit==0.44.1
+qiskit-aer==0.12.2
+qiskit-finance==0.3.4
+qiskit-algorithms==0.2.1
+qiskit-optimization==0.5.0
+matplotlib>=3.7.0
+numpy>=1.22.0
