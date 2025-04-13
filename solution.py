@@ -1,5 +1,5 @@
 
-### GIVEN PROGRAM ### 
+### GIVEN PROGRAM FOR GENERATING 
 import numpy as np
 
 # Set random seed for reproducibility
@@ -165,4 +165,81 @@ plt.xlabel('Portfolio Risk (Covariance)')
 plt.ylabel('Expected Premium Return (%)')
 plt.legend()
 plt.grid()
+plt.show()
+
+
+
+### GMVP 
+from scipy.optimize import minimize 
+import matplotlib.pyplot as plt 
+import seaborn as sns 
+import matplotlib as mpl
+
+def portfolio_variance(weights, cov_matrix):
+    return weights.T @ cov_matrix @ weights 
+
+constraints = {'type': 'eq', 'fun': lambda weights: np.sum(weights)-1}
+
+bounds = tuple((0,1) for _ in range(num_policies))
+
+initial_guess = num_policies * [1.0 / num_policies]
+
+result = minimize(
+    portfolio_variance, 
+    initial_guess,
+    args=(covariance_matrix, ),
+    method = "SLSQP",
+    bounds = bounds, 
+    constraints=constraints
+)
+
+gmvp_weights = result.x 
+
+gmvp_return = np.dot(gmvp_weights * budget, premiums)
+gmvp_return = (gmvp_return / np.sum(premiums)) * 100 
+gmvp_variance = portfolio_variance(gmvp_weights * budget, covariance_matrix)
+gmvp_std_dev = np.sqrt(gmvp_variance)
+
+print("\n=== Global Minimum-Variance Portfolio (GMVP) ===")
+print("GMVP Weights (scaled to budget):", gmvp_weights * budget)
+print(f"Expected Premium Return of GMVP: {gmvp_return:.2f}")
+print(f"Risk (Variance) of GMVP: {gmvp_variance:.4f}")
+
+mpl.rcParams.update(mpl.rcParamsDefault)
+mpl.rcParams['text.usetex'] = False
+mpl.rcParams['font.family'] = 'sans-serif'
+mpl.rcParams['mathtext.fontset'] = 'dejavusans'
+plt.style.use('seaborn-v0_8-darkgrid')
+sns.set()
+
+plt.figure(figsize=(10, 6))
+
+# Plot all Monte Carlo portfolios
+plt.scatter(risks_list, returns_list, alpha=0.5, color='blue', label='Random Portfolios')
+
+# Plot Best Monte Carlo portfolio
+plt.scatter(
+    risk_best,
+    expected_return_best,
+    color='red',
+    marker='*',
+    s=200,
+    label='Best Monte Carlo Portfolio'
+)
+
+# Plot GMVP
+plt.scatter(
+    gmvp_variance,
+    gmvp_return,
+    color='green',
+    marker='D',
+    s=100,
+    label='Global Minimum-Variance Portfolio (GMVP)'
+)
+
+plt.title('Insurance Portfolio Risk vs. Premium Return')
+plt.xlabel('Portfolio Risk (Variance)')
+plt.ylabel('Expected Premium Return')
+plt.legend()
+plt.grid(True)
 plt.show()
